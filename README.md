@@ -96,50 +96,6 @@ LoggingAspect가 자동으로 다음을 로깅합니다:
 GeneralException을 통해 비즈니스 로직 예외를 처리하고,
 ExceptionAdvice가 전역적으로 예외를 잡아 통일된 응답을 반환합니다.
 
-## 설정 변경 사항
-
-### 데이터베이스 변경 (MySQL)
-
-1. build.gradle에서 주석 해제:
-```gradle
-runtimeOnly 'com.mysql:mysql-connector-j'
-```
-
-2. application.yml 수정:
-```yaml
-spring:
-  datasource:
-    url: jdbc:mysql://localhost:3306/your_database?useSSL=false&serverTimezone=UTC
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    username: your_username
-    password: your_password
-  jpa:
-    hibernate:
-      ddl-auto: update
-    database-platform: org.hibernate.dialect.MySQL8Dialect
-```
-
-### AWS S3 설정
-
-application.yml에서 S3 설정을 실제 값으로 변경:
-```yaml
-spring:
-  cloud:
-    aws:
-      region:
-        static: ap-northeast-2  # 실제 리전
-      s3:
-        bucket: your-actual-bucket-name
-      credentials:
-        access-key: ${AWS_ACCESS_KEY}
-        secret-key: ${AWS_SECRET_KEY}
-```
-
-환경 변수로 AWS 자격 증명 설정:
-```bash
-export AWS_ACCESS_KEY=your-access-key
-export AWS_SECRET_KEY=your-secret-key
-```
 
 ## 기술 스택
 
