@@ -1,0 +1,31 @@
+spring:
+  application:
+    name: ${SPRING_APP_NAME}
+  profiles:
+    active: ${SPRING_ACTIVE_PROFILE}
+
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    show-sql: false
+    generate-ddl: true
+    properties:
+      hibernate:
+        hbm2ddl:
+          auto: update
+        format_sql: false
+        use_sql_comments: true
+        default_batch_fetch_size: 1000
+        dialect: org.hibernate.dialect.MySQLDialect
+    database: mysql
+
+  cloud:
+    aws:
+      region:
+        static: ${AWS_REGION}
+      s3:
+        bucket: ${AWS_S3_BUCKET}
