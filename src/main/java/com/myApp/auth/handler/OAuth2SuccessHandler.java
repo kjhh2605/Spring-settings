@@ -1,0 +1,81 @@
+package com.myApp.auth.handler;
+
+import com.myApp.auth.dto.TokenDto;
+import com.myApp.auth.jwt.JwtTokenProvider;
+import com.myApp.auth.redis.RefreshToken;
+import com.myApp.auth.repository.RefreshTokenRepository;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
+import org.springframework.stereotype.Component;
+import org.springframework.http.ResponseCookie;
+import org.springframework.web.util.UriComponentsBuilder;
+
+import java.io.IOException;
+
+@Slf4j
+@Component
+@RequiredArgsConstructor
+public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
+
+        private final JwtTokenProvider jwtTokenProvider;
+        private final RefreshTokenRepository refreshTokenRepository;
+
+        @Value("${spring.jwt.refresh-token-validity-in-seconds}")
+        private long refreshTokenValidityInSeconds;
+
+        @Override
+        public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
+                        Authentication authentication) throws IOException, ServletException {
+
+                // 1. 토큰 생성
+                TokenDto tokenDto = jwtTokenProvider.generateTokenDto(authentication);
+
+                // 2. Refresh Token 저장
+                saveRefreshToken(authentication, tokenDto);
+
+                // 3. Refresh Token을 HttpOnly Cookie로 설정
+                setRefreshTokenCookie(response, tokenDto);
+
+                // 4. Access Token만 담아 리다이렉트
+                redirectWithAccessToken(request, response, tokenDto.getAccessToken());
+        }
+
+        private void saveRefreshToken(Authentication authentication, TokenDto tokenDto) {
+
+                RefreshToken refreshToken = RefreshToken.builder()
+                                .id(authentication.getName())
+                                .token(tokenDto.getRefreshToken())
+                                .build();
+
+                refreshTokenRepository.save(refreshToken);
+        }
+
+        private void setRefreshTokenCookie(HttpServletResponse response, TokenDto tokenDto) {
+
+                ResponseCookie cookie = ResponseCookie.from("refresh_token", tokenDto.getRefreshToken())
+                                .httpOnly(true)
+                                .secure(true) // HTTPS 환경에서만 전송 (개발 환경에서는 false로 설정해야 할 수도 있음, 여기서는 true로 설정)
+                                .path("/")
+                                .maxAge(refreshTokenValidityInSeconds)
+                                .sameSite("None") // Cross-Site 요청 허용 (필요에 따라 설정)
+                                .build();
+
+                response.addHeader("Set-Cookie", cookie.toString());
+        }
+
+        private void redirectWithAccessToken(HttpServletRequest request, HttpServletResponse response,
+                        String accessToken) throws IOException {
+                String targetUrl = UriComponentsBuilder.fromUriString("http://localhost:3000/oauth2/redirect")
+                                .queryParam("accessToken", accessToken)
+                                .build().toUriString();
+
+                getRedirectStrategy().sendRedirect(request, response, targetUrl);
+        }
+
+}
