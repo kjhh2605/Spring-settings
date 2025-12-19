@@ -23,6 +23,9 @@ spring:
     access-token-validity-in-seconds: 180 # 3분
     refresh-token-validity-in-seconds: 1209600 # 14일
 
+  oauth2:
+    redirect-url: http://localhost:8080/swagger-ui/index.html
+
   data:
     redis:
       host: ${REDIS_HOST:localhost}
@@ -50,6 +53,7 @@ spring:
             scope:
               - profile_nickname
               - account_email
+              - openid
             client-name: Kakao
           naver:
             client-id: ${NAVER_CLIENT_ID}

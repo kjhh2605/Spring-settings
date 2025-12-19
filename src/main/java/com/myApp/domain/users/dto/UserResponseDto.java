@@ -1,7 +1,7 @@
 package com.myApp.domain.users.dto;
 
 import com.myApp.auth.entity.Role;
-import com.myApp.auth.entity.User;
+import com.myApp.auth.entity.Member;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -19,13 +19,13 @@ public class UserResponseDto {
     private Role role;
     private String socialType;
 
-    public static UserResponseDto from(User user) {
+    public static UserResponseDto from(Member member) {
         return UserResponseDto.builder()
-                .id(user.getId())
-                .name(user.getName())
-                .email(user.getEmail())
-                .role(user.getRole())
-                .socialType(user.getSocialType())
+                .id(member.getId())
+                .name(member.getName())
+                .email(member.getEmail())
+                .role(member.getRole())
+                .socialType(member.getSocialType())
                 .build();
     }
 }

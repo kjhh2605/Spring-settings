@@ -148,4 +148,41 @@ public class ApiResponse<T> extends ResponseEntity<ApiResponse.Body<T>> {
                 .build();
         return new ApiResponse<>(headers, body, code.getHttpStatus());
     }
+
+    /**
+     * 실패한 API 응답의 Body만 생성합니다.
+     * Spring Security 필터 등에서 직접 응답을 작성할 때 사용합니다.
+     *
+     * @param code 에러 코드와 메시지를 담고 있는 {@link BaseCode}
+     * @param <T>  응답 데이터의 타입
+     * @return 실패 응답 Body {@link Body}
+     */
+    public static <T> Body<T> createFailureBody(BaseCode code) {
+        return Body.<T>builder()
+                .isSuccess(false)
+                .code(code.getCode())
+                .message(code.getMessage())
+                .result(null)
+                .timestamp(LocalDateTime.now())
+                .build();
+    }
+
+    /**
+     * 실패한 API 응답의 Body만 생성합니다. (데이터 포함)
+     * Spring Security 필터 등에서 직접 응답을 작성할 때 사용합니다.
+     *
+     * @param code   에러 코드와 메시지를 담고 있는 {@link BaseCode}
+     * @param result 응답 데이터
+     * @param <T>    응답 데이터의 타입
+     * @return 실패 응답 Body {@link Body}
+     */
+    public static <T> Body<T> createFailureBody(BaseCode code, T result) {
+        return Body.<T>builder()
+                .isSuccess(false)
+                .code(code.getCode())
+                .message(code.getMessage())
+                .result(result)
+                .timestamp(LocalDateTime.now())
+                .build();
+    }
 }

@@ -29,6 +29,9 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         @Value("${spring.jwt.refresh-token-validity-in-seconds}")
         private long refreshTokenValidityInSeconds;
 
+        @Value("${spring.oauth2.redirect-url}")
+        private String redirectUrl;
+
         @Override
         public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
                         Authentication authentication) throws IOException, ServletException {
@@ -71,7 +74,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
         private void redirectWithAccessToken(HttpServletRequest request, HttpServletResponse response,
                         String accessToken) throws IOException {
-                String targetUrl = UriComponentsBuilder.fromUriString("http://localhost:3000/oauth2/redirect")
+                String targetUrl = UriComponentsBuilder.fromUriString(redirectUrl)
                                 .queryParam("accessToken", accessToken)
                                 .build().toUriString();
 

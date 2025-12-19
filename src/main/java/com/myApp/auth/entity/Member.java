@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 @Table(name = "users")
-public class User extends BaseEntity {
+public class Member extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -35,7 +35,7 @@ public class User extends BaseEntity {
     @Column(nullable = false)
     private String socialType; // google, kakao, naver
 
-    public User update(String name) {
+    public Member update(String name) {
         this.name = name;
         return this;
     }

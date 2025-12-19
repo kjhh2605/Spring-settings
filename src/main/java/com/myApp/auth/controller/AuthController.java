@@ -24,6 +24,7 @@ public class AuthController implements AuthControllerDocs {
     @PostMapping("/reissue")
     public ApiResponse<String> reissue(@CookieValue("refresh_token") String refreshToken,
             HttpServletResponse response) {
+
         TokenDto tokenDto = authService.reissue(refreshToken);
 
         // Refresh Token Cookie 설정
@@ -31,6 +32,7 @@ public class AuthController implements AuthControllerDocs {
         response.addHeader("Set-Cookie", cookie.toString());
 
         String accessToken = tokenDto.getAccessToken();
+        response.setHeader("Authorization", "Bearer " + accessToken);
 
         return ApiResponse.onSuccess(GeneralSuccessCode._OK, accessToken);
     }

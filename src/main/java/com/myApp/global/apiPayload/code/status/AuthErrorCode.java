@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 public enum AuthErrorCode implements BaseCode {
 
     // Auth (인증/권한 - JWT, Security)
+    TOKEN_NOT_FOUND(HttpStatus.UNAUTHORIZED, "AUTH_401_0", "인증 토큰이 누락되었습니다."),
     AUTH_UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "AUTH_401", "인증 정보가 유효하지 않습니다."),
     AUTH_TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "AUTH_401_01", "토큰의 유효기간이 만료되었습니다."),
     AUTH_TOKEN_INVALID(HttpStatus.UNAUTHORIZED, "AUTH_401_02", "잘못된 토큰입니다."),

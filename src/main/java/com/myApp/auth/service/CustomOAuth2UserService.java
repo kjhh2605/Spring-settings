@@ -1,8 +1,7 @@
 package com.myApp.auth.service;
 
-import com.myApp.auth.entity.Role;
-import com.myApp.auth.entity.User;
-import com.myApp.auth.repository.UserRepository;
+import com.myApp.auth.entity.Member;
+import com.myApp.auth.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -21,7 +20,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequest, OAuth2User> {
 
-        private final UserRepository userRepository;
+        private final MemberRepository memberRepository;
 
         @Setter
         private OAuth2UserService<OAuth2UserRequest, OAuth2User> delegate = new DefaultOAuth2UserService();
@@ -37,23 +36,23 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
                 OAuthAttributes attributes = OAuthAttributes.of(registrationId, userNameAttributeName,
                                 oAuth2User.getAttributes());
 
-                User user = saveOrUpdate(attributes);
+                Member member = saveOrUpdate(attributes);
 
                 // 이메일을 Principal Name으로 사용하기 위해 attributes에 email 추가 및 nameAttributeKey 변경
                 Map<String, Object> newAttributes = new java.util.HashMap<>(attributes.getAttributes());
                 newAttributes.put("email", attributes.getEmail());
 
                 return new DefaultOAuth2User(
-                                Collections.singleton(new SimpleGrantedAuthority(user.getRoleKey())),
+                                Collections.singleton(new SimpleGrantedAuthority(member.getRoleKey())),
                                 newAttributes,
                                 "email");
         }
 
-        private User saveOrUpdate(OAuthAttributes attributes) {
-                User user = userRepository.findByEmail(attributes.getEmail())
+        private Member saveOrUpdate(OAuthAttributes attributes) {
+                Member member = memberRepository.findByEmail(attributes.getEmail())
                                 .map(entity -> entity.update(attributes.getName()))
                                 .orElse(attributes.toEntity());
 
-                return userRepository.save(user);
+                return memberRepository.save(member);
         }
 }

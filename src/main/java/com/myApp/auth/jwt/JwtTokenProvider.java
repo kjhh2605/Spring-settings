@@ -1,6 +1,8 @@
 package com.myApp.auth.jwt;
 
 import com.myApp.auth.dto.TokenDto;
+import com.myApp.global.apiPayload.code.status.AuthErrorCode;
+import com.myApp.global.apiPayload.exception.GeneralException;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -19,6 +21,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Slf4j
 @Component
@@ -41,28 +44,37 @@ public class JwtTokenProvider {
         this.key = Keys.hmacShaKeyFor(keyBytes);
     }
 
-    public TokenDto generateTokenDto(Authentication authentication) {
+    public String generateAccessToken(Authentication authentication) {
         String authorities = authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.joining(","));
 
         long now = (new Date()).getTime();
-
-        // Access Token 생성
         Date accessTokenExpiresIn = new Date(now + accessTokenValidityInMilliseconds);
 
-        String accessToken = Jwts.builder()
+        return Jwts.builder()
                 .subject(authentication.getName())
                 .claim(AUTHORITIES_KEY, authorities)
                 .expiration(accessTokenExpiresIn)
-                .signWith(key) // signWith(key, algo) -> signWith(key) (알고리즘 자동 선택)
+                .signWith(key)
                 .compact();
+    }
 
-        // Refresh Token 생성
-        String refreshToken = Jwts.builder()
+    public String generateRefreshToken(Authentication authentication) {
+        long now = (new Date()).getTime();
+        return Jwts.builder()
+                .subject(authentication.getName()) // email 주소
                 .expiration(new Date(now + refreshTokenValidityInMilliseconds))
                 .signWith(key)
                 .compact();
+    }
+
+    public TokenDto generateTokenDto(Authentication authentication) {
+        String accessToken = generateAccessToken(authentication);
+        String refreshToken = generateRefreshToken(authentication);
+
+        long now = (new Date()).getTime();
+        Date accessTokenExpiresIn = new Date(now + accessTokenValidityInMilliseconds);
 
         return TokenDto.builder()
                 .grantType(BEARER_TYPE)
@@ -77,7 +89,7 @@ public class JwtTokenProvider {
         Claims claims = parseClaims(accessToken);
 
         if (claims.get(AUTHORITIES_KEY) == null) {
-            throw new RuntimeException("권한 정보가 없는 토큰입니다.");
+            throw new GeneralException(AuthErrorCode.TOKEN_NOT_FOUND);
         }
 
         Collection<? extends GrantedAuthority> authorities = Arrays
@@ -99,15 +111,18 @@ public class JwtTokenProvider {
                     .parseSignedClaims(token);
             return true;
         } catch (io.jsonwebtoken.security.SecurityException | MalformedJwtException e) {
-            log.info("잘못된 JWT 서명입니다.");
+            log.error("잘못된 JWT 서명입니다.", e);
+            throw new GeneralException(AuthErrorCode.AUTH_TOKEN_INVALID);
         } catch (ExpiredJwtException e) {
-            log.info("만료된 JWT 토큰입니다.");
+            log.error("만료된 JWT 토큰입니다.", e);
+            throw new GeneralException(AuthErrorCode.AUTH_TOKEN_EXPIRED);
         } catch (UnsupportedJwtException e) {
-            log.info("지원되지 않는 JWT 토큰입니다.");
+            log.error("지원되지 않는 JWT 토큰입니다.", e);
+            throw new GeneralException(AuthErrorCode.AUTH_TOKEN_INVALID);
         } catch (IllegalArgumentException e) {
-            log.info("JWT 토큰이 잘못되었습니다.");
+            log.error("JWT 토큰이 잘못되었습니다.", e);
+            throw new GeneralException(AuthErrorCode.AUTH_TOKEN_INVALID);
         }
-        return false;
     }
 
     public Long getExpiration(String accessToken) {
@@ -128,5 +143,9 @@ public class JwtTokenProvider {
         } catch (ExpiredJwtException e) {
             return e.getClaims();
         }
+    }
+
+    public String getSubject(String token) {
+        return parseClaims(token).getSubject();
     }
 }

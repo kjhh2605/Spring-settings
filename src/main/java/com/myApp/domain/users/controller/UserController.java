@@ -1,5 +1,6 @@
 package com.myApp.domain.users.controller;
 
+import com.myApp.auth.annotation.AuthUser;
 import com.myApp.domain.users.dto.UserResponseDto;
 import com.myApp.domain.users.service.UserService;
 import com.myApp.global.apiPayload.ApiResponse;
@@ -20,8 +21,7 @@ public class UserController implements UserControllerDocs{
     private final UserService userService;
 
     @GetMapping("/me")
-    //todo: AuthenticationPrincipal null인경우 대비 커스텀 어노테이션 작성
-    public ApiResponse<UserResponseDto> getMyInfo(@AuthenticationPrincipal UserDetails userDetails) {
+    public ApiResponse<UserResponseDto> getMyInfo(@AuthUser UserDetails userDetails) {
         UserResponseDto myInfo = userService.getMyInfo(userDetails.getUsername());
         return ApiResponse.onSuccess(GeneralSuccessCode._OK, myInfo);
     }

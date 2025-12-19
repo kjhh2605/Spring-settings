@@ -1,8 +1,8 @@
 package com.myApp.domain.users.service;
 
 import com.myApp.domain.users.dto.UserResponseDto;
-import com.myApp.auth.entity.User;
-import com.myApp.auth.repository.UserRepository;
+import com.myApp.auth.entity.Member;
+import com.myApp.auth.repository.MemberRepository;
 import com.myApp.global.apiPayload.code.status.GeneralErrorCode;
 import com.myApp.global.apiPayload.exception.GeneralException;
 import lombok.RequiredArgsConstructor;
@@ -14,17 +14,17 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class UserService {
 
-    private final UserRepository userRepository;
+    private final MemberRepository memberRepository;
 
     public UserResponseDto getUser(Long userId) {
-        User user = userRepository.findById(userId)
+        Member member = memberRepository.findById(userId)
                 .orElseThrow(() -> new GeneralException(GeneralErrorCode.USER_NOT_FOUND));
-        return UserResponseDto.from(user);
+        return UserResponseDto.from(member);
     }
 
     public UserResponseDto getMyInfo(String email) {
-        User user = userRepository.findByEmail(email)
+        Member member = memberRepository.findByEmail(email)
                 .orElseThrow(() -> new GeneralException(GeneralErrorCode.USER_NOT_FOUND));
-        return UserResponseDto.from(user);
+        return UserResponseDto.from(member);
     }
 }

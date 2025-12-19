@@ -10,7 +10,9 @@ import com.myApp.global.apiPayload.exception.GeneralException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,6 +24,7 @@ public class AuthService {
     private final JwtTokenProvider jwtTokenProvider;
     private final RefreshTokenRepository refreshTokenRepository;
     private final StringRedisTemplate redisTemplate;
+    private final CustomUserDetailsService customUserDetailsService;
 
     @org.springframework.beans.factory.annotation.Value("${spring.jwt.refresh-token-validity-in-seconds}")
     private long refreshTokenValidityInSeconds;
@@ -33,11 +36,11 @@ public class AuthService {
             throw new GeneralException(AuthErrorCode.INVALID_REFRESH_TOKEN);
         }
 
-        // 2. Access Token 에서 User ID 가져오기
-        Authentication authentication = jwtTokenProvider.getAuthentication(refreshToken);
+        // 2. Refresh Token 에서 email 가져오기
+        String email = jwtTokenProvider.getSubject(refreshToken);
 
-        // 3. Redis 에서 User ID 를 기반으로 저장된 Refresh Token 값을 가져옴
-        RefreshToken redisRefreshToken = refreshTokenRepository.findById(authentication.getName())
+        // 3. Redis 에서 id(email) 를 기반으로 저장된 Refresh Token 값을 가져옴
+        RefreshToken redisRefreshToken = refreshTokenRepository.findById(email)
                 .orElseThrow(() -> new GeneralException(AuthErrorCode.INVALID_REFRESH_TOKEN));
 
         // 4. Refresh Token 일치하는지 검사
@@ -45,10 +48,12 @@ public class AuthService {
             throw new GeneralException(AuthErrorCode.REFRESH_TOKEN_MISMATCH);
         }
 
-        // 5. 새로운 토큰 생성
+        // 5. Refresh Token & AccessToken
+        UserDetails userDetails = customUserDetailsService.loadUserByUsername(email);
+        Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
         TokenDto tokenDto = jwtTokenProvider.generateTokenDto(authentication);
 
-        // 6. Refresh Token 업데이트
+        // 6. 리프레시 토큰 갱신 (RTR 방식)
         redisRefreshToken.updateToken(tokenDto.getRefreshToken());
         refreshTokenRepository.save(redisRefreshToken);
 

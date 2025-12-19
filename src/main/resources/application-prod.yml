@@ -23,6 +23,9 @@ spring:
     access-token-validity-in-seconds: 1800 # 30분
     refresh-token-validity-in-seconds: 1209600 # 14일
 
+  oauth2:
+    redirect-url: http://localhost:3000/oauth2/redirect
+
   data:
     redis:
       host: ${REDIS_HOST:localhost}

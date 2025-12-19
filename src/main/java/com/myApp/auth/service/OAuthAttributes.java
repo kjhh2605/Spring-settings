@@ -1,7 +1,7 @@
 package com.myApp.auth.service;
 
 import com.myApp.auth.entity.Role;
-import com.myApp.auth.entity.User;
+import com.myApp.auth.entity.Member;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -76,8 +76,8 @@ public class OAuthAttributes {
                 .build();
     }
 
-    public User toEntity() {
-        return User.builder()
+    public Member toEntity() {
+        return Member.builder()
                 .name(name)
                 .email(email)
                 .role(Role.USER)

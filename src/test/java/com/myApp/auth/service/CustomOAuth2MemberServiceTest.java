@@ -1,8 +1,7 @@
 package com.myApp.auth.service;
 
-import com.myApp.auth.entity.Role;
-import com.myApp.auth.entity.User;
-import com.myApp.auth.repository.UserRepository;
+import com.myApp.auth.entity.Member;
+import com.myApp.auth.repository.MemberRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -28,13 +27,13 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.mock;
 
 @ExtendWith(MockitoExtension.class)
-class CustomOAuth2UserServiceTest {
+class CustomOAuth2MemberServiceTest {
 
     @InjectMocks
     private CustomOAuth2UserService customOAuth2UserService;
 
     @Mock
-    private UserRepository userRepository;
+    private MemberRepository memberRepository;
 
     @Mock
     private OAuth2UserService<OAuth2UserRequest, OAuth2User> delegate;
@@ -71,14 +70,14 @@ class CustomOAuth2UserServiceTest {
                 "sub");
 
         given(delegate.loadUser(any(OAuth2UserRequest.class))).willReturn(oAuth2User);
-        given(userRepository.findByEmail("test@example.com")).willReturn(Optional.empty());
-        given(userRepository.save(any(User.class))).willAnswer(invocation -> invocation.getArgument(0));
+        given(memberRepository.findByEmail("test@example.com")).willReturn(Optional.empty());
+        given(memberRepository.save(any(Member.class))).willAnswer(invocation -> invocation.getArgument(0));
 
         // when
         OAuth2User result = customOAuth2UserService.loadUser(userRequest);
 
         // then
         assertThat(result).isNotNull();
-        verify(userRepository).save(any(User.class));
+        verify(memberRepository).save(any(Member.class));
     }
 }
