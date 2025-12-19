@@ -52,13 +52,14 @@ public class SecurityConfig {
                         // 그 외 모든 요청은 인증 필요
                         .anyRequest().authenticated())
 
-                // 인증 실패 시 401 JSON 응답 반환
+                // 인증되지 않은 사용자의 접근 시 401 JSON 응답 반환
+                // (토큰이 없는 상태에서 인증 필요 엔드포인트 접근)
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint((request, response, authException) -> {
                             response.setContentType("application/json;charset=UTF-8");
-                            response.setStatus(AuthErrorCode.AUTH_UNAUTHORIZED.getHttpStatus().value());
+                            response.setStatus(AuthErrorCode.UNAUTHORIZED.getHttpStatus().value());
 
-                            ApiResponse.Body<?> errorBody = ApiResponse.createFailureBody(AuthErrorCode.AUTH_UNAUTHORIZED);
+                            ApiResponse.Body<?> errorBody = ApiResponse.createFailureBody(AuthErrorCode.UNAUTHORIZED);
 
                             ObjectMapper objectMapper = new ObjectMapper();
                             objectMapper.registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule());

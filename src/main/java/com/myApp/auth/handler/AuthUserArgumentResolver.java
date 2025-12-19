@@ -31,14 +31,14 @@ public class AuthUserArgumentResolver implements HandlerMethodArgumentResolver {
         // 인증 정보가 없거나 익명 사용자인 경우 예외 발생
         if (authentication == null || authentication instanceof AnonymousAuthenticationToken
                 || !authentication.isAuthenticated()) {
-            throw new GeneralException(AuthErrorCode.AUTH_UNAUTHORIZED);
+            throw new GeneralException(AuthErrorCode.UNAUTHORIZED);
         }
 
         Object principal = authentication.getPrincipal();
 
         // Principal이 UserDetails 타입인지 확인
         if (!(principal instanceof UserDetails)) {
-            throw new GeneralException(AuthErrorCode.AUTH_UNAUTHORIZED);
+            throw new GeneralException(AuthErrorCode.UNAUTHORIZED);
         }
 
         return principal;
