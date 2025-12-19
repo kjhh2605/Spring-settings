@@ -1,5 +1,7 @@
 package com.myApp.auth.jwt;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.myApp.global.apiPayload.ApiResponse;
 import com.myApp.global.apiPayload.exception.GeneralException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -38,13 +40,22 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 Authentication authentication = jwtTokenProvider.getAuthentication(jwt);
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
+
+            filterChain.doFilter(request, response);
+
         } catch (GeneralException e) {
             log.error("JWT 인증 실패: {}", e.getMessage());
-            // 예외를 request attribute에 저장하여 AuthenticationEntryPoint에서 처리하도록 함
-            request.setAttribute("exception", e);
-        }
 
-        filterChain.doFilter(request, response);
+            // JWT 검증 실패 시 직접 JSON 에러 응답 반환
+            response.setContentType("application/json;charset=UTF-8");
+            response.setStatus(e.getCode().getHttpStatus().value());
+
+            ApiResponse.Body<?> errorBody = ApiResponse.createFailureBody(e.getCode());
+
+            ObjectMapper objectMapper = new ObjectMapper();
+            objectMapper.registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule());
+            response.getWriter().write(objectMapper.writeValueAsString(errorBody));
+        }
     }
 
     // Request Header 에서 토큰 정보를 꺼내오기
