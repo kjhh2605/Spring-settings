@@ -5,10 +5,11 @@ import com.myApp.auth.jwt.JwtTokenProvider;
 import com.myApp.auth.redis.RefreshToken;
 import com.myApp.auth.repository.RefreshTokenRepository;
 import com.myApp.global.apiPayload.code.status.AuthErrorCode;
-import com.myApp.global.apiPayload.code.status.GeneralErrorCode;
+
 import com.myApp.global.apiPayload.exception.GeneralException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +21,10 @@ public class AuthService {
 
     private final JwtTokenProvider jwtTokenProvider;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final StringRedisTemplate redisTemplate;
+
+    @org.springframework.beans.factory.annotation.Value("${spring.jwt.refresh-token-validity-in-seconds}")
+    private long refreshTokenValidityInSeconds;
 
     @Transactional
     public TokenDto reissue(String refreshToken) {
@@ -29,13 +34,6 @@ public class AuthService {
         }
 
         // 2. Access Token 에서 User ID 가져오기
-        // (Refresh Token 에는 권한 정보가 없을 수 있으므로, Access Token 이 만료되었더라도 파싱해서 ID를 가져오거나,
-        // Refresh Token 에 ID를 넣어서 파싱)
-        // 여기서는 Refresh Token 을 파싱해서 Authentication 을 가져오는 방식을 사용 (JwtTokenProvider 구현에
-        // 따라 다름)
-        // JwtTokenProvider.getAuthentication 은 Access Token 용으로 설계되었으므로, Refresh Token
-        // 용으로 별도 메서드가 필요할 수 있음.
-        // 하지만 여기서는 Refresh Token 도 JWT 이므로, claims 에서 sub 를 가져올 수 있음.
         Authentication authentication = jwtTokenProvider.getAuthentication(refreshToken);
 
         // 3. Redis 에서 User ID 를 기반으로 저장된 Refresh Token 값을 가져옴
@@ -59,6 +57,11 @@ public class AuthService {
 
     @Transactional
     public void logout(String accessToken, String refreshToken) {
+        // Bearer 제거
+        if (accessToken != null && accessToken.startsWith("Bearer ")) {
+            accessToken = accessToken.substring(7);
+        }
+
         // 1. Access Token 검증
         if (!jwtTokenProvider.validateToken(accessToken)) {
             throw new GeneralException(AuthErrorCode.AUTH_TOKEN_INVALID);
@@ -71,5 +74,20 @@ public class AuthService {
         if (refreshTokenRepository.findById(authentication.getName()).isPresent()) {
             refreshTokenRepository.deleteById(authentication.getName());
         }
+
+        // 4. Access Token 유효시간을 가져와서 BlackList로 저장
+        Long expiration = jwtTokenProvider.getExpiration(accessToken);
+        redisTemplate.opsForValue()
+                .set("blacklist:" + accessToken, "logout", expiration, java.util.concurrent.TimeUnit.MILLISECONDS);
+    }
+
+    public org.springframework.http.ResponseCookie createRefreshTokenCookie(String refreshToken) {
+        return org.springframework.http.ResponseCookie.from("refresh_token", refreshToken)
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(refreshTokenValidityInSeconds)
+                .sameSite("None")
+                .build();
     }
 }

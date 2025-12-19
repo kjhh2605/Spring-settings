@@ -25,9 +25,6 @@ public class User extends BaseEntity {
     @Column(nullable = false, unique = true)
     private String email;
 
-    @Column
-    private String picture;
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Role role;
@@ -38,9 +35,8 @@ public class User extends BaseEntity {
     @Column(nullable = false)
     private String socialType; // google, kakao, naver
 
-    public User update(String name, String picture) {
+    public User update(String name) {
         this.name = name;
-        this.picture = picture;
         return this;
     }
 

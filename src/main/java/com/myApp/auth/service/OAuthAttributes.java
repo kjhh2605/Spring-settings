@@ -10,21 +10,19 @@ import java.util.Map;
 @Getter
 public class OAuthAttributes {
     private Map<String, Object> attributes;
-    private String nameAttributeKey;
-    private String name;
-    private String email;
-    private String picture;
-    private String socialType;
-    private String socialId;
+    private final String nameAttributeKey;
+    private final String name;
+    private final String email;
+    private final String socialType;
+    private final String socialId;
 
     @Builder
     public OAuthAttributes(Map<String, Object> attributes, String nameAttributeKey, String name, String email,
-                           String picture, String socialType, String socialId) {
+                           String socialType, String socialId) {
         this.attributes = attributes;
         this.nameAttributeKey = nameAttributeKey;
         this.name = name;
         this.email = email;
-        this.picture = picture;
         this.socialType = socialType;
         this.socialId = socialId;
     }
@@ -44,7 +42,6 @@ public class OAuthAttributes {
         return OAuthAttributes.builder()
                 .name((String) attributes.get("name"))
                 .email((String) attributes.get("email"))
-                .picture((String) attributes.get("picture"))
                 .socialType("google")
                 .socialId((String) attributes.get("sub"))
                 .attributes(attributes)
@@ -58,7 +55,6 @@ public class OAuthAttributes {
         return OAuthAttributes.builder()
                 .name((String) response.get("name"))
                 .email((String) response.get("email"))
-                .picture((String) response.get("profile_image"))
                 .socialType("naver")
                 .socialId((String) response.get("id"))
                 .attributes(response)
@@ -73,7 +69,6 @@ public class OAuthAttributes {
         return OAuthAttributes.builder()
                 .name((String) profile.get("nickname"))
                 .email((String) kakaoAccount.get("email"))
-                .picture((String) profile.get("profile_image_url"))
                 .socialType("kakao")
                 .socialId(String.valueOf(attributes.get("id")))
                 .attributes(attributes)
@@ -85,7 +80,6 @@ public class OAuthAttributes {
         return User.builder()
                 .name(name)
                 .email(email)
-                .picture(picture)
                 .role(Role.USER)
                 .socialType(socialType)
                 .socialId(socialId)

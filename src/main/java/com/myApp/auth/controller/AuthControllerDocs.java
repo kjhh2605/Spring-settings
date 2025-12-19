@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 public interface AuthControllerDocs {
 
         @Operation(summary = "토큰 재발급", description = "Cookie에 있는 Refresh Token을 이용하여 새로운 Access Token을 발급합니다.")
-        ApiResponse<TokenDto> reissue(
+        ApiResponse<String> reissue(
                         @Parameter(description = "Refresh Token (HttpOnly Cookie)", required = true) @CookieValue("refresh_token") String refreshToken,
                         HttpServletResponse response);
 

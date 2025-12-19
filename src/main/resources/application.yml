@@ -1,13 +1,13 @@
 spring:
   application:
-    name: ${SPRING_APP_NAME}
+    name: ${SPRING_APP_NAME:myApp}
   profiles:
     active: ${SPRING_ACTIVE_PROFILE:dev}
 
   datasource:
-    url: ${DB_URL}
-    username: ${DB_USER}
-    password: ${DB_PASSWORD}
+    url: ${DB_URL:jdbc:mysql://localhost:3306/myapp}
+    username: ${DB_USER:root}
+    password: ${DB_PASSWORD:root1234!@}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
