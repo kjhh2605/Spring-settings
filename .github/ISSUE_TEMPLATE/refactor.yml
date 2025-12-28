@@ -1,0 +1,27 @@
+name: "♻️ 리팩토링 (Refactor)"
+description: "코드 구조 개선 또는 성능 최적화를 제안합니다."
+title: "[Refactor]: "
+labels: ["refactor"]
+body:
+  - type: textarea
+    id: current-state
+    attributes:
+      label: "현재 코드의 상태 및 문제점"
+      description: "리팩토링이 필요한 부분의 코드 위치나 논리적인 문제점을 적어주세요."
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: "수정 제안"
+      description: "어떻게 개선할 계획인가요?"
+      placeholder: "예: 중복된 로직을 유틸 함수로 분리하고 가독성을 높입니다."
+    validations:
+      required: true
+  - type: textarea
+    id: expected-benefit
+    attributes:
+      label: "기대 효과"
+      description: "리팩토링 후 어떤 점이 좋아지나요? (예: 성능 향상, 유지보수 용이 등)"
+    validations:
+      required: true

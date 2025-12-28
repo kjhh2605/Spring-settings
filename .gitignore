@@ -53,3 +53,6 @@ out/
 .project
 .settings/
 bin/
+
+### Claude ###
+.claude

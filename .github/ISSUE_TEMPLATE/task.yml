@@ -1,0 +1,19 @@
+name: "🛠️ 작업 (Task/Chore)"
+description: "문서 수정, 빌드 설정, 라이브러리 업데이트 등 일반적인 작업을 보고합니다."
+title: "[Task]: "
+labels: ["chore", "documentation"]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: "작업 내용"
+      description: "수행해야 할 작업에 대해 상세히 적어주세요."
+    validations:
+      required: true
+  - type: textarea
+    id: todo
+    attributes:
+      label: "할 일 목록"
+      placeholder: |
+        - [ ] README.md 수정
+        - [ ] 종속성 라이브러리 버전업

@@ -1,0 +1,5 @@
+blank_issues_enabled: false # 빈 이슈 생성 방지
+contact_links:
+  - name: "질문/답변"
+    url: "https://github.com/사용자명/저장소명/discussions"
+    about: "간단한 질문은 Discussions를 이용해 주세요."
