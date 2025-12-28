@@ -1,6 +1,7 @@
 package com.myApp.domain.users.controller;
 
 import com.myApp.auth.annotation.AuthUser;
+import com.myApp.auth.annotation.CheckBlacklist;
 import com.myApp.domain.users.dto.UserResponseDto;
 import com.myApp.domain.users.service.UserService;
 import com.myApp.global.apiPayload.ApiResponse;

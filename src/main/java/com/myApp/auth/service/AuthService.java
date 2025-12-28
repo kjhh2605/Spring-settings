@@ -90,7 +90,7 @@ public class AuthService {
         return org.springframework.http.ResponseCookie.from("refresh_token", refreshToken)
                 .httpOnly(true)
                 .secure(true)
-                .path("/")
+                .path("/api/v1/auth")
                 .maxAge(refreshTokenValidityInSeconds)
                 .sameSite("None")
                 .build();

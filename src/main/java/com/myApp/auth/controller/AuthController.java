@@ -31,10 +31,7 @@ public class AuthController implements AuthControllerDocs {
         ResponseCookie cookie = authService.createRefreshTokenCookie(tokenDto.getRefreshToken());
         response.addHeader("Set-Cookie", cookie.toString());
 
-        String accessToken = tokenDto.getAccessToken();
-        response.setHeader("Authorization", "Bearer " + accessToken);
-
-        return ApiResponse.onSuccess(GeneralSuccessCode._OK, accessToken);
+        return ApiResponse.onSuccess(GeneralSuccessCode._OK, tokenDto.getAccessToken());
     }
 
     @PostMapping("/logout")
@@ -48,7 +45,7 @@ public class AuthController implements AuthControllerDocs {
         ResponseCookie cookie = ResponseCookie.from("refresh_token", "")
                 .httpOnly(true)
                 .secure(true)
-                .path("/")
+                .path("/api/v1/auth")
                 .maxAge(0) // 만료
                 .sameSite("None")
                 .build();

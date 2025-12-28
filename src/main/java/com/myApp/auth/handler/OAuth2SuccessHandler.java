@@ -26,6 +26,9 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         private final JwtTokenProvider jwtTokenProvider;
         private final RefreshTokenRepository refreshTokenRepository;
 
+        @Value("${spring.jwt.access-token-validity-in-seconds}")
+        private long accessTokenValidityInSeconds;
+
         @Value("${spring.jwt.refresh-token-validity-in-seconds}")
         private long refreshTokenValidityInSeconds;
 
@@ -45,8 +48,8 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
                 // 3. Refresh Token을 HttpOnly Cookie로 설정
                 setRefreshTokenCookie(response, tokenDto);
 
-                // 4. Access Token만 담아 리다이렉트
-                redirectWithAccessToken(request, response, tokenDto.getAccessToken());
+                // 리다이렉트
+                getRedirectStrategy().sendRedirect(request, response, redirectUrl);
         }
 
         private void saveRefreshToken(Authentication authentication, TokenDto tokenDto) {
@@ -64,21 +67,11 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
                 ResponseCookie cookie = ResponseCookie.from("refresh_token", tokenDto.getRefreshToken())
                                 .httpOnly(true)
                                 .secure(true) // HTTPS 환경에서만 전송 (개발 환경에서는 false로 설정해야 할 수도 있음, 여기서는 true로 설정)
-                                .path("/")
+                                .path("/api/v1/auth")
                                 .maxAge(refreshTokenValidityInSeconds)
                                 .sameSite("None") // Cross-Site 요청 허용 (필요에 따라 설정)
                                 .build();
 
                 response.addHeader("Set-Cookie", cookie.toString());
         }
-
-        private void redirectWithAccessToken(HttpServletRequest request, HttpServletResponse response,
-                        String accessToken) throws IOException {
-                String targetUrl = UriComponentsBuilder.fromUriString(redirectUrl)
-                                .queryParam("accessToken", accessToken)
-                                .build().toUriString();
-
-                getRedirectStrategy().sendRedirect(request, response, targetUrl);
-        }
-
 }

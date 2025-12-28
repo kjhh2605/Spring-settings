@@ -21,7 +21,7 @@ import java.time.LocalDateTime;
  * @param <T> 응답 데이터의 타입
  */
 @Getter
-public class ApiResponse<T> extends ResponseEntity<ApiResponse.Body<T>> {
+public class ApiResponse<T> extends ResponseEntity<Object> {
 
     public ApiResponse(Body<T> body, HttpStatus status) {
         super(body, status);
@@ -96,6 +96,7 @@ public class ApiResponse<T> extends ResponseEntity<ApiResponse.Body<T>> {
                 .code(code.getCode())
                 .message(code.getMessage())
                 .result(result)
+                .timestamp(LocalDateTime.now())
                 .build();
         return new ApiResponse<>(body, code.getHttpStatus());
     }
@@ -126,6 +127,7 @@ public class ApiResponse<T> extends ResponseEntity<ApiResponse.Body<T>> {
                 .code(code.getCode())
                 .message(code.getMessage())
                 .result(result)
+                .timestamp(LocalDateTime.now())
                 .build();
         return new ApiResponse<>(headers, body, code.getHttpStatus());
     }
@@ -145,6 +147,7 @@ public class ApiResponse<T> extends ResponseEntity<ApiResponse.Body<T>> {
                 .code(code.getCode())
                 .message(code.getMessage())
                 .result(result)
+                .timestamp(LocalDateTime.now())
                 .build();
         return new ApiResponse<>(headers, body, code.getHttpStatus());
     }
