@@ -2,14 +2,12 @@ package com.myApp.auth.service;
 
 import com.myApp.auth.dto.TokenDto;
 import com.myApp.auth.jwt.JwtTokenProvider;
-import com.myApp.auth.redis.RefreshToken;
-import com.myApp.auth.repository.RefreshTokenRepository;
+import com.myApp.auth.token.TokenStore;
 import com.myApp.global.apiPayload.code.status.AuthErrorCode;
 
 import com.myApp.global.apiPayload.exception.GeneralException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -22,8 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class AuthService {
 
     private final JwtTokenProvider jwtTokenProvider;
-    private final RefreshTokenRepository refreshTokenRepository;
-    private final StringRedisTemplate redisTemplate;
+    private final TokenStore tokenStore;
     private final CustomUserDetailsService customUserDetailsService;
 
     @org.springframework.beans.factory.annotation.Value("${spring.jwt.refresh-token-validity-in-seconds}")
@@ -39,12 +36,12 @@ public class AuthService {
         // 2. Refresh Token 에서 email 가져오기
         String email = jwtTokenProvider.getSubject(refreshToken);
 
-        // 3. Redis 에서 id(email) 를 기반으로 저장된 Refresh Token 값을 가져옴
-        RefreshToken redisRefreshToken = refreshTokenRepository.findById(email)
+        // 3. 저장소에서 id(email) 를 기반으로 저장된 Refresh Token 값을 가져옴
+        String savedRefreshToken = tokenStore.findRefreshToken(email)
                 .orElseThrow(() -> new GeneralException(AuthErrorCode.INVALID_REFRESH_TOKEN));
 
         // 4. Refresh Token 일치하는지 검사
-        if (!redisRefreshToken.getToken().equals(refreshToken)) {
+        if (!savedRefreshToken.equals(refreshToken)) {
             throw new GeneralException(AuthErrorCode.REFRESH_TOKEN_MISMATCH);
         }
 
@@ -54,8 +51,7 @@ public class AuthService {
         TokenDto tokenDto = jwtTokenProvider.generateTokenDto(authentication);
 
         // 6. 리프레시 토큰 갱신 (RTR 방식)
-        redisRefreshToken.updateToken(tokenDto.getRefreshToken());
-        refreshTokenRepository.save(redisRefreshToken);
+        tokenStore.saveRefreshToken(email, tokenDto.getRefreshToken());
 
         return tokenDto;
     }
@@ -75,15 +71,12 @@ public class AuthService {
         // 2. Access Token 에서 User ID 가져오기
         Authentication authentication = jwtTokenProvider.getAuthentication(accessToken);
 
-        // 3. Redis 에서 해당 User ID 로 저장된 Refresh Token 이 있는지 여부를 확인 후 있을 경우 삭제
-        if (refreshTokenRepository.findById(authentication.getName()).isPresent()) {
-            refreshTokenRepository.deleteById(authentication.getName());
-        }
+        // 3. 해당 User ID 로 저장된 Refresh Token 이 있는 경우 삭제
+        tokenStore.deleteRefreshToken(authentication.getName());
 
         // 4. Access Token 유효시간을 가져와서 BlackList로 저장
         Long expiration = jwtTokenProvider.getExpiration(accessToken);
-        redisTemplate.opsForValue()
-                .set("blacklist:" + accessToken, "logout", expiration, java.util.concurrent.TimeUnit.MILLISECONDS);
+        tokenStore.blacklistAccessToken(accessToken, expiration);
     }
 
     public org.springframework.http.ResponseCookie createRefreshTokenCookie(String refreshToken) {

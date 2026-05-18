@@ -2,8 +2,7 @@ package com.myApp.auth.handler;
 
 import com.myApp.auth.dto.TokenDto;
 import com.myApp.auth.jwt.JwtTokenProvider;
-import com.myApp.auth.redis.RefreshToken;
-import com.myApp.auth.repository.RefreshTokenRepository;
+import com.myApp.auth.token.TokenStore;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -24,7 +23,7 @@ import java.io.IOException;
 public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
         private final JwtTokenProvider jwtTokenProvider;
-        private final RefreshTokenRepository refreshTokenRepository;
+        private final TokenStore tokenStore;
 
         @Value("${spring.jwt.access-token-validity-in-seconds}")
         private long accessTokenValidityInSeconds;
@@ -54,12 +53,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
         private void saveRefreshToken(Authentication authentication, TokenDto tokenDto) {
 
-                RefreshToken refreshToken = RefreshToken.builder()
-                                .id(authentication.getName())
-                                .token(tokenDto.getRefreshToken())
-                                .build();
-
-                refreshTokenRepository.save(refreshToken);
+                tokenStore.saveRefreshToken(authentication.getName(), tokenDto.getRefreshToken());
         }
 
         private void setRefreshTokenCookie(HttpServletResponse response, TokenDto tokenDto) {

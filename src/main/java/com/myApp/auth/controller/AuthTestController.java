@@ -2,8 +2,7 @@ package com.myApp.auth.controller;
 
 import com.myApp.auth.dto.TokenDto;
 import com.myApp.auth.jwt.JwtTokenProvider;
-import com.myApp.auth.redis.RefreshToken;
-import com.myApp.auth.repository.RefreshTokenRepository;
+import com.myApp.auth.token.TokenStore;
 import com.myApp.auth.entity.Member;
 import com.myApp.auth.repository.MemberRepository;
 import com.myApp.auth.entity.Role;
@@ -31,7 +30,7 @@ import java.util.Collections;
 public class AuthTestController {
 
     private final JwtTokenProvider jwtTokenProvider;
-    private final RefreshTokenRepository refreshTokenRepository;
+    private final TokenStore tokenStore;
     private final MemberRepository memberRepository;
 
     @Operation(summary = "Dev용 로그인 (토큰 발급)", description = "개발 환경에서 OAuth2 로그인 없이 토큰을 발급받습니다.")
@@ -57,11 +56,7 @@ public class AuthTestController {
         TokenDto tokenDto = jwtTokenProvider.generateTokenDto(authentication);
 
         // 4. Refresh Token 저장
-        RefreshToken refreshToken = RefreshToken.builder()
-                .id(member.getEmail())
-                .token(tokenDto.getRefreshToken())
-                .build();
-        refreshTokenRepository.save(refreshToken);
+        tokenStore.saveRefreshToken(member.getEmail(), tokenDto.getRefreshToken());
 
         // 5. 쿠키 설정
         ResponseCookie cookie = ResponseCookie.from("refresh_token", tokenDto.getRefreshToken())
